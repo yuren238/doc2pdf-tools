@@ -1,17 +1,14 @@
 # -*- coding: utf-8 -*-
 """
-Document to PDF Converter (Windows Only)
+文档转PDF工具（Windows 专用）
 
-Converts the following files to PDF:
-- Excel files: Area summary tables (Sheet 1)
-- Word documents: Application forms
-- Word documents: Quality commitment page from survey reports
-- Word documents: Acceptance report page from survey reports
+支持将以下文件转换为PDF：
+- Excel文件：面积汇总表.xls/xlsx（工作表1）
+- Word文档：审查申请表.doc/.docx
+- Word文档：地籍调查报告中的"质量承诺书"页面
+- Word文档：地籍调查报告中的"地籍调查成果验收报告"页面
 
-Output: Grayscale PDF files saved to 'out' folder.
-
-Author: Auto-generated
-Version: 1.0.0
+输出为黑白PDF，文件保存到脚本所在目录的 out 文件夹。
 """
 
 import os
@@ -22,41 +19,41 @@ import winreg
 import traceback
 from datetime import datetime
 
-# ============= Configuration =============
+# ============= 配置区域 =============
 ROOT_DIR = os.path.dirname(os.path.abspath(__file__))
 OUTPUT_DIR = os.path.join(ROOT_DIR, 'out')
 ERROR_LOG_FILE = os.path.join(ROOT_DIR, 'error.txt')
-# ============= End Configuration =============
+# ============= 配置区域结束 =============
 
 
 def write_error_log(error_message):
-    """Write error details to error.txt file."""
+    
     timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
     with open(ERROR_LOG_FILE, 'w', encoding='utf-8') as f:
         f.write("=" * 60 + "\n")
-        f.write("Document to PDF Converter - Error Log\n")
+        f.write("文档转PDF工具 - 错误日志\n")
         f.write("=" * 60 + "\n\n")
-        f.write(f"Error Time: {timestamp}\n")
-        f.write(f"Script Location: {ROOT_DIR}\n")
-        f.write(f"Python Version: {sys.version}\n")
-        f.write(f"OS: {sys.platform}\n")
+        f.write(f"错误发生时间： {timestamp}\n")
+        f.write(f"脚本位置： {ROOT_DIR}\n")
+        f.write(f"Python版本： {sys.version}\n")
+        f.write(f"操作系统： {sys.platform}\n")
         f.write("\n" + "-" * 60 + "\n")
-        f.write("Error Details:\n")
+        f.write("错误详情：\n")
         f.write("-" * 60 + "\n\n")
         f.write(error_message)
         f.write("\n\n" + "-" * 60 + "\n")
-        f.write("Suggestions:\n")
+        f.write("建议检查：\n")
         f.write("-" * 60 + "\n")
-        f.write("1. Ensure Microsoft Office (Excel/Word) is installed\n")
-        f.write("2. Ensure Python 3.7+ is installed\n")
-        f.write("3. Try running: pip install pywin32 pypdf\n")
-        f.write("4. Check if file is locked by another program\n")
-        f.write("5. Verify file format (xls/xlsx/doc/docx)\n")
+        f.write("1. 确认已安装 Microsoft Office (Excel/Word)\n")
+        f.write("2. 确认已安装 Python 3.7 及以上版本\n")
+        f.write("3. 尝试手动运行: pip install pywin32\n")
+        f.write("4. 检查文件是否被其他程序占用\n")
+        f.write("5. 确认文件格式正确（xls/xlsx/doc/docx）\n")
     print(f"\nError log saved to: {ERROR_LOG_FILE}")
 
 
 def pause_and_exit(code=0, error_msg=None):
-    """Pause before exit and write error log if needed."""
+    
     if error_msg and code != 0:
         write_error_log(error_msg)
     print()
@@ -65,53 +62,53 @@ def pause_and_exit(code=0, error_msg=None):
 
 
 # ─────────────────────────────────────────────
-#  Environment Check & Auto-fix
+#  环境检查与自动修复
 # ─────────────────────────────────────────────
 
 def check_python_version():
-    """Check if Python version is 3.7+."""
+    """检查 Python 版本是否为 3.7+。"""
     major, minor = sys.version_info[:2]
     if (major, minor) < (3, 7):
-        print(f"[X] Python version too low: {major}.{minor}, requires 3.7+")
-        print("    Download from https://www.python.org/downloads/")
+        print(f"[✗] Python 版本过低：{major}.{minor}，需要 3.7 及以上。")
+        print("    请前往 https://www.python.org/downloads/ 下载新版本。")
         return False
-    print(f"[OK] Python {major}.{minor}.{sys.version_info[2]}")
+    print(f"[✓] Python {major}.{minor}.{sys.version_info[2]}")
     return True
 
 
 def check_pip_available():
-    """Check if pip is available, try to fix if not."""
+    """检查 pip 是否可用，不可用时尝试修复。"""
     try:
         subprocess.check_call(
             [sys.executable, '-m', 'pip', '--version'],
             stdout=subprocess.DEVNULL, stderr=subprocess.STDOUT,
         )
-        print("[OK] pip available")
+        print("[✓] pip 可用")
         return True
     except subprocess.CalledProcessError:
-        print("[!] pip not available, trying to fix...")
+        print("[!] pip 不可用，尝试修复...")
         try:
             subprocess.check_call(
                 [sys.executable, '-m', 'ensurepip', '--upgrade'],
                 stdout=subprocess.DEVNULL, stderr=subprocess.STDOUT,
             )
-            print("[OK] pip fixed")
+            print("[✓] pip 修复成功")
             return True
         except Exception as e:
-            print(f"[X] pip fix failed: {e}")
-            print("    Please reinstall Python with 'Add pip' option.")
+            print(f"[✗] pip 修复失败：{e}")
+            print("    请手动重新安装 Python 并勾选 'Add pip' 选项。")
             return False
 
 
 def check_and_install_pywin32():
-    """Check and install pywin32 if needed."""
+    """检查 pywin32 是否安装，缺少则自动安装。"""
     try:
         import win32com.client
         import pythoncom
-        print("[OK] pywin32 installed")
+        print("[✓] pywin32 已安装")
         return True
     except ImportError:
-        print("[!] pywin32 not installed, installing...")
+        print("[!] pywin32 未安装，正在自动安装...")
         try:
             subprocess.check_call([sys.executable, '-m', 'pip', 'install', 'pywin32'])
             scripts_dir = os.path.join(os.path.dirname(sys.executable), 'Scripts')
@@ -121,34 +118,34 @@ def check_and_install_pywin32():
                     [sys.executable, post_install, '-install'],
                     stdout=subprocess.DEVNULL, stderr=subprocess.STDOUT,
                 )
-            print("[OK] pywin32 installed")
+            print("[✓] pywin32 已安装")
             return True
         except Exception as e:
-            print(f"[X] pywin32 install failed: {e}")
-            print("    Run manually: pip install pywin32")
+            print(f"[✗] pywin32 安装失败：{e}")
+            print("    请手动运行：pip install pywin32")
             return False
 
 
 def check_and_install_pypdf():
-    """Check and install pypdf if needed."""
+    """检查 pypdf 是否安装，缺少则自动安装。"""
     try:
         import pypdf
-        print("[OK] pypdf installed")
+        print("[✓] pypdf 已安装")
         return True
     except ImportError:
-        print("[!] pypdf not installed, installing...")
+        print("[!] pypdf 未安装，正在自动安装...")
         try:
             subprocess.check_call([sys.executable, '-m', 'pip', 'install', 'pypdf'])
-            print("[OK] pypdf installed")
+            print("[✓] pypdf 已安装")
             return True
         except Exception as e:
-            print(f"[X] pypdf install failed: {e}")
-            print("    Run manually: pip install pypdf")
+            print(f"[✗] pypdf 安装失败：{e}")
+            print("    请手动运行：pip install pypdf")
             return False
 
 
 def check_office_via_registry(app_name):
-    """Check if Office app is installed via registry."""
+    
     reg_paths = [
         (winreg.HKEY_LOCAL_MACHINE,
          rf"SOFTWARE\Microsoft\Windows\CurrentVersion\App Paths\{app_name.upper()}.EXE"),
@@ -167,27 +164,27 @@ def check_office_via_registry(app_name):
 
 
 def check_office_installed(need_excel=True, need_word=True):
-    """Check if required Office apps are installed."""
+    
     all_ok = True
     if need_excel:
         if check_office_via_registry('Excel'):
-            print("[OK] Microsoft Excel installed")
+            print("[✓] Microsoft Excel 已安装")
         else:
-            print("[X] Microsoft Excel not detected, please install Office.")
+            print("[✗] 未检测到 Microsoft Excel，请先安装 Microsoft Office。")
             all_ok = False
     if need_word:
         if check_office_via_registry('Word'):
-            print("[OK] Microsoft Word installed")
+            print("[✓] Microsoft Word 已安装")
         else:
-            print("[X] Microsoft Word not detected, please install Office.")
+            print("[✗] 未检测到 Microsoft Word，请先安装 Microsoft Office。")
             all_ok = False
     return all_ok
 
 
 def run_environment_check(need_excel, need_word):
-    """Run all environment checks."""
+    
     print("=" * 50)
-    print("  Environment Check")
+    print("  环境检查")
     print("=" * 50)
     results = [
         check_python_version(),
@@ -199,40 +196,46 @@ def run_environment_check(need_excel, need_word):
     all_ok = all(results)
     print("=" * 50)
     if all_ok:
-        print("  Environment check passed, starting conversion...\n")
+        print("  环境检查通过，开始转换...\n")
     else:
-        print("  Environment check failed, please fix issues above.")
+        print("  环境检查未通过，请根据上方提示修复后重新运行。")
     return all_ok
 
 
 # ─────────────────────────────────────────────
-#  Grayscale Conversion
+#  黑白转换
 # ─────────────────────────────────────────────
 
 def strip_color_from_stream(data: bytes) -> bytes:
     """
-    Strip color commands from PDF content stream.
-    Replace all color operators with grayscale equivalents.
+    扫描 PDF 页面内容流，将所有颜色设置指令替换为黑色。
+
+    PDF 颜色操作符：
+      rg / RG   — DeviceRGB 填充/描边（3个参数）
+      k  / K    — DeviceCMYK 填充/描边（4个参数）
+      scn/ SCN  — 通用颜色（参数数量不定，此处处理1-4个数字的情况）
+      sc / SC   — 同上简化版
+    全部替换为 DeviceGray 的等效操作符 g/G（0 = 黑色）。
     """
     import re
 
-    # RGB fill: r g b rg -> 0 g
+    # RGB 填充：r g b rg  → 0 g
     data = re.sub(rb'([\d.]+)\s+([\d.]+)\s+([\d.]+)\s+rg', b'0 g', data)
-    # RGB stroke: r g b RG -> 0 G
+    # RGB 描边：r g b RG  → 0 G
     data = re.sub(rb'([\d.]+)\s+([\d.]+)\s+([\d.]+)\s+RG', b'0 G', data)
-    # CMYK fill -> 0 g
+    # CMYK 填充：c m y k  → 0 g
     data = re.sub(rb'([\d.]+)\s+([\d.]+)\s+([\d.]+)\s+([\d.]+)\s+k', b'0 g', data)
-    # CMYK stroke -> 0 G
+    # CMYK 描边：c m y k  → 0 G
     data = re.sub(rb'([\d.]+)\s+([\d.]+)\s+([\d.]+)\s+([\d.]+)\s+K', b'0 G', data)
-    # scn/sc fill -> 0 g
+    # scn/sc 填充（1-4个参数）→ 0 g
     data = re.sub(rb'(?:[\d.]+\s+){1,4}sc(?:n)?', b'0 g', data)
-    # SCN/SC stroke -> 0 G
+    # SCN/SC 描边（1-4个参数）→ 0 G
     data = re.sub(rb'(?:[\d.]+\s+){1,4}SC(?:N)?', b'0 G', data)
     return data
 
 
 def convert_pdf_to_grayscale(input_pdf, output_pdf):
-    """Convert color PDF to grayscale."""
+    """将彩色 PDF 转换为黑白：修改页面内容流中的颜色操作符。"""
     import pypdf
 
     reader = pypdf.PdfReader(input_pdf)
@@ -262,31 +265,31 @@ def convert_pdf_to_grayscale(input_pdf, output_pdf):
 
 
 # ─────────────────────────────────────────────
-#  Menu
+#  菜单
 # ─────────────────────────────────────────────
 
 def show_menu():
-    """Display menu and return user selection."""
+    
     print("\n" + "=" * 50)
-    print("  Document to PDF Converter")
+    print("  文档转PDF转换工具")
     print("=" * 50)
-    print("  Select file type to convert:")
+    print("  请选择要转换的文件类型：")
     print()
-    print("  1. Area Summary Table (Excel, Sheet 1)")
-    print("  2. Application Form (Word document)")
-    print("  3. Quality Commitment Page (from Survey Report)")
-    print("  4. Acceptance Report Page (from Survey Report)")
+    print("  1. 转换面积汇总表（Excel 文件）")
+    print("  2. 转换审查申请表（Word 文档）")
+    print("  3. 转换地籍调查报告-质量承诺书页面")
+    print("  4. 转换地籍调查报告-地籍调查成果验收报告页面")
     print()
-    print("  Multi-select supported:")
-    print("    1,2,3,4  -> Convert all")
-    print("    34       -> Convert options 3 and 4")
-    print("    Enter    -> Convert all (default)")
-    print("    0        -> Exit")
+    print("  支持多选：")
+    print("    输入 1,2,3,4 → 转换所有")
+    print("    输入 34      → 转换质量承诺书和验收报告")
+    print("    直接回车     → 转换全部")
+    print("    输入 0       → 退出")
     print()
 
     while True:
         try:
-            choice = input("  Enter selection: ").strip()
+            choice = input("  请输入选项：").strip()
         except KeyboardInterrupt:
             print()
             return ['0']
@@ -302,17 +305,17 @@ def show_menu():
         if choices and all(c in ('1', '2', '3', '4') for c in choices):
             return choices
 
-        print("  Invalid input. Enter 1, 2, 3, 4 or combinations like 1234, 1,2,3,4")
+        print("  输入无效，请重新输入（可输入 1、2、3、4 或组合如 1234、1,2,3,4）")
 
 
 # ─────────────────────────────────────────────
-#  Conversion Functions
+#  转换函数
 # ─────────────────────────────────────────────
 
 def excel_to_pdf(excel_file, output_pdf):
-    """Convert Excel Sheet 1 to grayscale PDF."""
+    """将 Excel 工作表1导出为黑白 PDF。"""
     filename = os.path.basename(excel_file)
-    print(f"> Processing Excel: {filename}")
+    print(f"▶ 处理 Excel：{filename}")
 
     import win32com.client
     import pythoncom
@@ -328,7 +331,7 @@ def excel_to_pdf(excel_file, output_pdf):
 
         wb = excel.Workbooks.Open(os.path.abspath(excel_file))
         ws = wb.Worksheets(1)
-        print(f"   Sheet name: {ws.Name}")
+        print(f"   工作表名称：{ws.Name}")
 
         tmp_pdf = output_pdf + ".tmp.pdf"
         ws.ExportAsFixedFormat(
@@ -340,15 +343,15 @@ def excel_to_pdf(excel_file, output_pdf):
             OpenAfterPublish=False,
         )
 
-        print("   Converting to grayscale...")
+        print("   正在转换为黑白...")
         convert_pdf_to_grayscale(tmp_pdf, output_pdf)
         os.remove(tmp_pdf)
 
-        print(f"   [OK] Saved: {output_pdf}\n")
+        print(f"   ✅ 已保存（黑白）：{output_pdf}\n")
         return True
 
     except Exception as e:
-        print(f"   [FAILED] {e}\n")
+        print(f"   ❌ 失败：{e}\n")
         traceback.print_exc()
         return False
     finally:
@@ -366,9 +369,9 @@ def excel_to_pdf(excel_file, output_pdf):
 
 
 def word_to_pdf(word_file, output_pdf):
-    """Convert Word document to grayscale PDF."""
+    """将 Word 文档导出为黑白 PDF。"""
     filename = os.path.basename(word_file)
-    print(f"> Processing Word: {filename}")
+    print(f"▶ 处理 Word：{filename}")
 
     import win32com.client
     import pythoncom
@@ -394,15 +397,15 @@ def word_to_pdf(word_file, output_pdf):
             IncludeDocProps=False,
         )
 
-        print("   Converting to grayscale...")
+        print("   正在转换为黑白...")
         convert_pdf_to_grayscale(tmp_pdf, output_pdf)
         os.remove(tmp_pdf)
 
-        print(f"   [OK] Saved: {output_pdf}\n")
+        print(f"   ✅ 已保存（黑白）：{output_pdf}\n")
         return True
 
     except Exception as e:
-        print(f"   [FAILED] {e}\n")
+        print(f"   ❌ 失败：{e}\n")
         traceback.print_exc()
         return False
     finally:
@@ -420,9 +423,9 @@ def word_to_pdf(word_file, output_pdf):
 
 
 def word_page_to_pdf(word_file, output_pdf, page_num, page_name=""):
-    """Convert specific page of Word document to grayscale PDF."""
+    """将 Word 文档的指定页面导出为黑白 PDF。"""
     filename = os.path.basename(word_file)
-    print(f"> Processing Word: {filename} ({page_name} - Page {page_num})")
+    print(f"▶ 处理 Word：{filename}（{page_name} - 第{page_num}页）")
 
     import win32com.client
     import pythoncom
@@ -450,15 +453,15 @@ def word_page_to_pdf(word_file, output_pdf, page_num, page_name=""):
             IncludeDocProps=False,
         )
 
-        print("   Converting to grayscale...")
+        print("   正在转换为黑白...")
         convert_pdf_to_grayscale(tmp_pdf, output_pdf)
         os.remove(tmp_pdf)
 
-        print(f"   [OK] Saved: {output_pdf}\n")
+        print(f"   ✅ 已保存（黑白）：{output_pdf}\n")
         return True
 
     except Exception as e:
-        print(f"   [FAILED] {e}\n")
+        print(f"   ❌ 失败：{e}\n")
         traceback.print_exc()
         return False
     finally:
@@ -477,15 +480,15 @@ def word_page_to_pdf(word_file, output_pdf, page_num, page_name=""):
 
 def find_page_by_keyword(word_file, keyword, occurrence=1):
     """
-    Find page number by searching keyword in Word document.
-    
+    用 Word Find 对象搜索关键词所在的绝对页码。
+
     Args:
-        word_file: Path to Word document
-        keyword: Text to search for
-        occurrence: Which occurrence to find (default: 1)
-    
+        word_file: Word文件路径
+        keyword: 搜索关键词
+        occurrence: 第几次出现（默认1，即第一次）
+
     Returns:
-        Page number (int) or None if not found
+        页码（整数）或 None（未找到）
     """
     import win32com.client
     import pythoncom
@@ -507,7 +510,7 @@ def find_page_by_keyword(word_file, keyword, occurrence=1):
                 break
             except Exception as e:
                 if attempt < max_retries - 1:
-                    print(f"   File open failed, retrying... ({attempt + 1}/{max_retries})")
+                    print(f"   文件打开失败，等待1秒后重试... ({attempt + 1}/{max_retries})")
                     time.sleep(1)
                 else:
                     raise e
@@ -527,7 +530,7 @@ def find_page_by_keyword(word_file, keyword, occurrence=1):
         return None
 
     except Exception as e:
-        print(f"   Error finding page: {e}")
+        print(f"   查找页面时出错：{e}")
         return None
     finally:
         if doc is not None:
@@ -545,7 +548,7 @@ def find_page_by_keyword(word_file, keyword, occurrence=1):
 
 
 # ─────────────────────────────────────────────
-#  Main
+#  主流程
 # ─────────────────────────────────────────────
 
 def main():
@@ -560,52 +563,52 @@ def main():
     need_word = '2' in choices or '3' in choices or '4' in choices
 
     if not run_environment_check(need_excel, need_word):
-        pause_and_exit(1, "Environment check failed")
+        pause_and_exit(1, "环境检查未通过")
 
     def find_files(pattern):
         return [f for f in glob.glob(pattern, recursive=True)
                 if not os.path.basename(f).startswith('~')]
 
-    # File patterns (adjust these for your needs)
+    
     excel_files = find_files(os.path.join(ROOT_DIR, '**', '*面积汇总表*.xls*')) if need_excel else []
     word_files = find_files(os.path.join(ROOT_DIR, '**', '*审查申请表*.doc*')) if '2' in choices else []
     survey_files_3 = find_files(os.path.join(ROOT_DIR, '**', '*地籍调查报告*.doc*')) if '3' in choices else []
     survey_files_4 = find_files(os.path.join(ROOT_DIR, '**', '*地籍调查报告*.doc*')) if '4' in choices else []
 
-    # Find Quality Commitment pages
+    # 查找质量承诺书页码
     quality_tasks = []
     if '3' in choices and survey_files_3:
-        print("\nSearching for 'Quality Commitment' pages...")
+        print("\n正在查找地籍调查报告中的'质量承诺书'页面...")
         for f in survey_files_3:
             page_num = find_page_by_keyword(f, "质量承诺书", occurrence=1)
             if page_num:
-                print(f"   [OK] {os.path.basename(f)} - Found at page {page_num}")
+                print(f"   ✅ {os.path.basename(f)} - 质量承诺书在第 {page_num} 页")
                 quality_tasks.append((f, page_num))
             else:
-                print(f"   [X] {os.path.basename(f)} - Not found")
+                print(f"   ❌ {os.path.basename(f)} - 未找到'质量承诺书'")
 
-    # Find Acceptance Report pages (2nd occurrence)
+    # 查找验收报告页码
     acceptance_tasks = []
     if '4' in choices and survey_files_4:
-        print("\nSearching for 'Acceptance Report' pages...")
+        print("\n正在查找地籍调查报告中的'地籍调查成果验收报告'页面...")
         for f in survey_files_4:
             page_num = find_page_by_keyword(f, "地籍调查成果验收报告", occurrence=2)
             if page_num:
-                print(f"   [OK] {os.path.basename(f)} - Found at page {page_num}")
+                print(f"   ✅ {os.path.basename(f)} - 质量承诺书在第 {page_num} 页")
                 acceptance_tasks.append((f, page_num))
             else:
-                print(f"   [X] {os.path.basename(f)} - Not found")
+                print(f"   ❌ {os.path.basename(f)} - 未找到'质量承诺书'")
 
-    # Build task list
+    # 构建任务列表
     tasks = []
     for f in excel_files:
-        tasks.append({'file': f, 'type': 'excel', 'convert_fn': excel_to_pdf, 'extra': None, 'desc': 'Area Summary'})
+        tasks.append({'file': f, 'type': 'excel', 'convert_fn': excel_to_pdf, 'extra': None, 'desc': '面积汇总表'})
     for f in word_files:
-        tasks.append({'file': f, 'type': 'word', 'convert_fn': word_to_pdf, 'extra': None, 'desc': 'Application Form'})
+        tasks.append({'file': f, 'type': 'word', 'convert_fn': word_to_pdf, 'extra': None, 'desc': '审查申请表'})
     for f, page in quality_tasks:
-        tasks.append({'file': f, 'type': 'quality', 'convert_fn': word_page_to_pdf, 'extra': page, 'desc': f'Quality Commitment(Page {page})'})
+        tasks.append({'file': f, 'type': 'quality', 'convert_fn': word_page_to_pdf, 'extra': page, 'desc': f'质量承诺书(第{page}页)'})
     for f, page in acceptance_tasks:
-        tasks.append({'file': f, 'type': 'acceptance', 'convert_fn': word_page_to_pdf, 'extra': page, 'desc': f'Acceptance Report(Page {page})'})
+        tasks.append({'file': f, 'type': 'acceptance', 'convert_fn': word_page_to_pdf, 'extra': page, 'desc': f'验收报告(第{page}页)'})
 
     if not tasks:
         print("\nNo matching files found.")
@@ -628,11 +631,11 @@ def main():
         stem = os.path.splitext(os.path.basename(task['file']))[0]
 
         if task['type'] == 'quality':
-            output_pdf = os.path.join(OUTPUT_DIR, f"{stem}_quality_commitment.pdf")
-            success = task['convert_fn'](task['file'], output_pdf, task['extra'], "Quality Commitment")
+            output_pdf = os.path.join(OUTPUT_DIR, f"{stem}_质量承诺书.pdf")
+            success = task['convert_fn'](task['file'], output_pdf, task['extra'], "质量承诺书")
         elif task['type'] == 'acceptance':
-            output_pdf = os.path.join(OUTPUT_DIR, f"{stem}_acceptance_report.pdf")
-            success = task['convert_fn'](task['file'], output_pdf, task['extra'], "Acceptance Report")
+            output_pdf = os.path.join(OUTPUT_DIR, f"{stem}_地籍调查成果验收报告.pdf")
+            success = task['convert_fn'](task['file'], output_pdf, task['extra'], "地籍调查成果验收报告")
         else:
             output_pdf = os.path.join(OUTPUT_DIR, f"{stem}.pdf")
             success = task['convert_fn'](task['file'], output_pdf)
@@ -643,16 +646,16 @@ def main():
             fail_list.append(os.path.basename(task['file']))
 
     print("=" * 50)
-    print("  Conversion Summary")
+    print("  转换结果汇总")
     print("=" * 50)
-    print(f"  Success: {len(ok_list)}")
-    print(f"  Failed: {len(fail_list)}")
+    print(f"  成功：{len(ok_list)} 个")
+    print(f"  失败：{len(fail_list)} 个")
     if fail_list:
-        print("\n  Failed files:")
+        print("\n  失败的文件：")
         for f in fail_list:
             print(f"    - {f}")
     print()
-    print(f"  Output folder: {OUTPUT_DIR}")
+    print(f"  PDF 文件保存位置：{OUTPUT_DIR}")
     print("=" * 50)
 
     pause_and_exit(0)
@@ -662,6 +665,6 @@ if __name__ == "__main__":
     try:
         main()
     except Exception as e:
-        error_msg = f"Error Type: {type(e).__name__}\nError: {str(e)}\n\nStack Trace:\n{traceback.format_exc()}"
+        error_msg = f"错误类型：{type(e).__name__}\n错误信息：{str(e)}\n\n详细堆栈信息：\n{traceback.format_exc()}"
         print(f"\nProgram error: {e}")
         pause_and_exit(1, error_msg)
