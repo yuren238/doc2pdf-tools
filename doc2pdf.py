@@ -18,7 +18,11 @@ import traceback
 from datetime import datetime
 
 # ============= 配置区域 =============
-ROOT_DIR = os.path.dirname(os.path.abspath(__file__))
+# exe 打包后 __file__ 指向临时目录，需用 sys.executable 获取 exe 所在目录
+if getattr(sys, 'frozen', False):
+    ROOT_DIR = os.path.dirname(os.path.abspath(sys.executable))
+else:
+    ROOT_DIR = os.path.dirname(os.path.abspath(__file__))
 OUTPUT_DIR = os.path.join(ROOT_DIR, 'out')
 ERROR_LOG_FILE = os.path.join(ROOT_DIR, 'error.txt')
 # ============= 配置区域结束 =============
