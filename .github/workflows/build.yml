@@ -11,10 +11,10 @@ jobs:
 
     steps:
       - name: 检出代码
-        uses: actions/checkout@v4
+        uses: actions/checkout@v4.2.2
 
       - name: 配置 Python
-        uses: actions/setup-python@v5
+        uses: actions/setup-python@v5.4.0
         with:
           python-version: "3.11"
 
@@ -37,7 +37,7 @@ jobs:
                       doc2pdf.py
 
       - name: 上传构建产物
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v4.6.2
         with:
           name: 文档转PDF转换工具
           path: dist\文档转PDF转换工具.exe
