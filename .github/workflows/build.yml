@@ -1,0 +1,44 @@
+name: 打包 exe
+
+on:
+  push:
+    branches: [ main ]       # 推送到 main 分支时触发
+  workflow_dispatch:          # 也可以在网页上手动触发
+
+jobs:
+  build:
+    runs-on: windows-latest   # 必须用 Windows，因为依赖 pywin32
+
+    steps:
+      - name: 检出代码
+        uses: actions/checkout@v4
+
+      - name: 配置 Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: 安装依赖
+        run: |
+          pip install pyinstaller pywin32 pypdf
+
+      - name: 打包
+        run: |
+          pyinstaller --onefile `
+                      --console `
+                      --name "文档转PDF转换工具" `
+                      --hidden-import win32com.client `
+                      --hidden-import win32com.server.policy `
+                      --hidden-import pythoncom `
+                      --hidden-import pywintypes `
+                      --hidden-import win32api `
+                      --hidden-import win32con `
+                      --collect-all pypdf `
+                      doc2pdf.py
+
+      - name: 上传构建产物
+        uses: actions/upload-artifact@v4
+        with:
+          name: 文档转PDF转换工具
+          path: dist\文档转PDF转换工具.exe
+          retention-days: 30    # 保留30天
