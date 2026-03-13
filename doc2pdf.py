@@ -14,8 +14,6 @@
 import os
 import sys
 import glob
-import subprocess
-import winreg
 import traceback
 from datetime import datetime
 
@@ -60,146 +58,6 @@ def pause_and_exit(code=0, error_msg=None):
     os.system("pause")
     sys.exit(code)
 
-
-# ─────────────────────────────────────────────
-#  环境检查与自动修复
-# ─────────────────────────────────────────────
-
-def check_python_version():
-    """检查 Python 版本是否为 3.7+。"""
-    major, minor = sys.version_info[:2]
-    if (major, minor) < (3, 7):
-        print(f"[✗] Python 版本过低：{major}.{minor}，需要 3.7 及以上。")
-        print("    请前往 https://www.python.org/downloads/ 下载新版本。")
-        return False
-    print(f"[✓] Python {major}.{minor}.{sys.version_info[2]}")
-    return True
-
-
-def check_pip_available():
-    """检查 pip 是否可用，不可用时尝试修复。"""
-    try:
-        subprocess.check_call(
-            [sys.executable, '-m', 'pip', '--version'],
-            stdout=subprocess.DEVNULL, stderr=subprocess.STDOUT,
-        )
-        print("[✓] pip 可用")
-        return True
-    except subprocess.CalledProcessError:
-        print("[!] pip 不可用，尝试修复...")
-        try:
-            subprocess.check_call(
-                [sys.executable, '-m', 'ensurepip', '--upgrade'],
-                stdout=subprocess.DEVNULL, stderr=subprocess.STDOUT,
-            )
-            print("[✓] pip 修复成功")
-            return True
-        except Exception as e:
-            print(f"[✗] pip 修复失败：{e}")
-            print("    请手动重新安装 Python 并勾选 'Add pip' 选项。")
-            return False
-
-
-def check_and_install_pywin32():
-    """检查 pywin32 是否安装，缺少则自动安装。"""
-    try:
-        import win32com.client
-        import pythoncom
-        print("[✓] pywin32 已安装")
-        return True
-    except ImportError:
-        print("[!] pywin32 未安装，正在自动安装...")
-        try:
-            subprocess.check_call([sys.executable, '-m', 'pip', 'install', 'pywin32'])
-            scripts_dir = os.path.join(os.path.dirname(sys.executable), 'Scripts')
-            post_install = os.path.join(scripts_dir, 'pywin32_postinstall.py')
-            if os.path.exists(post_install):
-                subprocess.call(
-                    [sys.executable, post_install, '-install'],
-                    stdout=subprocess.DEVNULL, stderr=subprocess.STDOUT,
-                )
-            print("[✓] pywin32 已安装")
-            return True
-        except Exception as e:
-            print(f"[✗] pywin32 安装失败：{e}")
-            print("    请手动运行：pip install pywin32")
-            return False
-
-
-def check_and_install_pypdf():
-    """检查 pypdf 是否安装，缺少则自动安装。"""
-    try:
-        import pypdf
-        print("[✓] pypdf 已安装")
-        return True
-    except ImportError:
-        print("[!] pypdf 未安装，正在自动安装...")
-        try:
-            subprocess.check_call([sys.executable, '-m', 'pip', 'install', 'pypdf'])
-            print("[✓] pypdf 已安装")
-            return True
-        except Exception as e:
-            print(f"[✗] pypdf 安装失败：{e}")
-            print("    请手动运行：pip install pypdf")
-            return False
-
-
-def check_office_via_registry(app_name):
-    
-    reg_paths = [
-        (winreg.HKEY_LOCAL_MACHINE,
-         rf"SOFTWARE\Microsoft\Windows\CurrentVersion\App Paths\{app_name.upper()}.EXE"),
-        (winreg.HKEY_LOCAL_MACHINE,
-         rf"SOFTWARE\Classes\{app_name}.Application\CurVer"),
-        (winreg.HKEY_LOCAL_MACHINE,
-         rf"SOFTWARE\WOW6432Node\Microsoft\Windows\CurrentVersion\App Paths\{app_name.upper()}.EXE"),
-    ]
-    for hive, path in reg_paths:
-        try:
-            with winreg.OpenKey(hive, path):
-                return True
-        except FileNotFoundError:
-            continue
-    return False
-
-
-def check_office_installed(need_excel=True, need_word=True):
-    
-    all_ok = True
-    if need_excel:
-        if check_office_via_registry('Excel'):
-            print("[✓] Microsoft Excel 已安装")
-        else:
-            print("[✗] 未检测到 Microsoft Excel，请先安装 Microsoft Office。")
-            all_ok = False
-    if need_word:
-        if check_office_via_registry('Word'):
-            print("[✓] Microsoft Word 已安装")
-        else:
-            print("[✗] 未检测到 Microsoft Word，请先安装 Microsoft Office。")
-            all_ok = False
-    return all_ok
-
-
-def run_environment_check(need_excel, need_word):
-    
-    print("=" * 50)
-    print("  环境检查")
-    print("=" * 50)
-    results = [
-        check_python_version(),
-        check_pip_available(),
-        check_and_install_pywin32(),
-        check_and_install_pypdf(),
-        check_office_installed(need_excel, need_word),
-    ]
-    all_ok = all(results)
-    print("=" * 50)
-    if all_ok:
-        print("  环境检查通过，开始转换...\n")
-    else:
-        print("  环境检查未通过，请根据上方提示修复后重新运行。")
-    return all_ok
 
 
 # ─────────────────────────────────────────────
@@ -562,8 +420,6 @@ def main():
     need_excel = '1' in choices
     need_word = '2' in choices or '3' in choices or '4' in choices
 
-    if not run_environment_check(need_excel, need_word):
-        pause_and_exit(1, "环境检查未通过")
 
     def find_files(pattern):
         return [f for f in glob.glob(pattern, recursive=True)
